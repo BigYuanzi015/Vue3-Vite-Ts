@@ -1,0 +1,21 @@
+// SCSS 变量文件
+// 在 vite.config.ts 中全局导入，所有组件都可以使用
+
+// 颜色变量
+$primary-color: #409eff;
+$success-color: #67c23a;
+$warning-color: #e6a23c;
+$danger-color: #f56c6c;
+$info-color: #909399;
+
+// 字体大小
+$font-size-small: 12px;
+$font-size-base: 14px;
+$font-size-large: 16px;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;

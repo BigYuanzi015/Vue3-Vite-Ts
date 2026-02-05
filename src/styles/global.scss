@@ -1,0 +1,25 @@
+// 全局样式文件
+// Tailwind CSS 指令
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// 导入变量文件
+@import './variables.scss';
+
+// 全局样式重置
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  color: #333;
+}
