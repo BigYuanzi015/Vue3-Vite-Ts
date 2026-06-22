@@ -1,13 +1,19 @@
-// 全局样式文件
-// Tailwind CSS 指令
+/* ======================================================
+ * 全局样式文件
+ *
+ * 包含 Tailwind CSS 指令、SCSS 变量导入以及全局样式重置。
+ * 此文件在 main.ts 中导入，作用于整个应用。
+ * ====================================================== */
+
+/* ── Tailwind CSS 指令 ──────────────────────── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-// 导入变量文件
+/* ── SCSS 变量（全局注入） ───────────────────── */
 @import './variables.scss';
 
-// 全局样式重置
+/* ── 全局样式重置 ──────────────────────────── */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -17,8 +23,8 @@
 
 body {
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   font-size: $font-size-base;
   line-height: 1.5;
   color: #333;

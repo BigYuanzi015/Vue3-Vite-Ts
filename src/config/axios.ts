@@ -1,29 +1,61 @@
+/**
+ * Axios 实例配置与拦截器
+ *
+ * 创建统一的 Axios 实例，注册请求/响应拦截器实现：
+ * - Token 自动携带
+ * - 全局 Loading 控制（请求计数防重叠）
+ * - 统一错误提示与 HTTP 状态码映射
+ *
+ * @module config/axios
+ */
+
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios'
 import { ElLoading, ElMessage } from 'element-plus'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
 import { appConfig } from './index'
 import { getToken, removeToken } from '@/utils/auth'
 
-// 请求配置
+/**
+ * 扩展请求配置
+ */
 export interface RequestConfig extends AxiosRequestConfig {
-  loading?: boolean // 是否显示 loading
-  showError?: boolean // 是否显示错误提示
+  /** 是否显示全局 Loading，默认 true */
+  loading?: boolean
+  /** 是否在业务/HTTP 错误时弹出消息提示，默认 true */
+  showError?: boolean
 }
 
-// 响应数据格式
-export interface ResponseData<T = any> {
+/**
+ * 标准响应数据结构（与后端约定）
+ *
+ * @template ResponseDataType - 业务数据的具体类型
+ */
+export interface ResponseData<ResponseDataType = any> {
+  /** 业务状态码 */
   code: number
+  /** 状态说明 */
   message: string
-  data: T
+  /** 业务数据 */
+  data: ResponseDataType
 }
 
-// Loading 实例
+/** 当前 Loading 实例引用 */
 let loadingInstance: LoadingInstance | null = null
-// 请求计数，用于控制 loading 显示
+
+/** 并发请求计数器，用于 Loading 的精准开/关 */
 let requestCount = 0
 
-// 显示 loading
+/**
+ * 显示全局 Loading
+ *
+ * 仅首次并发请求弹出遮罩，后续请求仅递增计数器。
+ */
 const showLoading = () => {
   if (requestCount === 0) {
     loadingInstance = ElLoading.service({
@@ -35,7 +67,11 @@ const showLoading = () => {
   requestCount++
 }
 
-// 隐藏 loading
+/**
+ * 隐藏全局 Loading
+ *
+ * 递减计数器，当所有并发请求都完成时才关闭遮罩。
+ */
 const hideLoading = () => {
   requestCount--
   if (requestCount <= 0) {
@@ -45,7 +81,12 @@ const hideLoading = () => {
   }
 }
 
-// 创建 axios 实例
+/**
+ * 创建 Axios 实例
+ *
+ * - 默认 baseURL/超时取自 appConfig
+ * - Content-Type 默认 application/json
+ */
 const service: AxiosInstance = axios.create({
   baseURL: appConfig.apiBaseURL,
   timeout: appConfig.requestTimeout,
@@ -54,18 +95,18 @@ const service: AxiosInstance = axios.create({
   },
 })
 
-// 请求拦截器
+// ─── 请求拦截器 ───────────────────────────────────────
+
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 获取自定义配置
     const customConfig = config as RequestConfig
-    
-    // 显示 loading（默认显示）
+
+    // 默认开启 Loading，可通过 loading:false 关闭
     if (customConfig.loading !== false) {
       showLoading()
     }
 
-    // 添加 token（如果有）
+    // 自动附加 Bearer Token
     const token = getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -77,47 +118,50 @@ service.interceptors.request.use(
     hideLoading()
     ElMessage.error('请求错误：' + (error?.message || '未知错误'))
     return Promise.reject(error)
-  }
+  },
 )
 
-// 响应拦截器
+// ─── 响应拦截器 ───────────────────────────────────────
+
 service.interceptors.response.use(
   (response: AxiosResponse<ResponseData>) => {
     hideLoading()
 
-    const res = response.data
-    const config = response.config as RequestConfig
+    const responseBody = response.data
+    const requestConfig = response.config as RequestConfig
 
-    // 如果响应数据是文件流等，直接返回
-    if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
+    // 文件流 / 二进制直接透传原始响应
+    if (
+      response.config.responseType === 'blob' ||
+      response.config.responseType === 'arraybuffer'
+    ) {
       return response
     }
 
-    // 根据业务状态码处理
-    if (res.code === 200 || res.code === 0) {
-      return res.data
-    } else {
-      // 业务错误
-      if (config.showError !== false) {
-        ElMessage.error(res.message || '请求失败')
-      }
-      return Promise.reject(new Error(res.message || '请求失败'))
+    // 业务成功：code === 200 或 0
+    if (responseBody.code === 200 || responseBody.code === 0) {
+      return responseBody.data
     }
+
+    // 业务错误：可关闭自动提示
+    if (requestConfig.showError !== false) {
+      ElMessage.error(responseBody.message || '请求失败')
+    }
+    return Promise.reject(new Error(responseBody.message || '请求失败'))
   },
   (error: any) => {
     hideLoading()
 
-    const config = error.config as RequestConfig
+    const requestConfig = error.config as RequestConfig
 
+    // 按 HTTP 状态码生成可读错误文案
     let message = '请求失败'
     if (error.response) {
-      // 服务器返回了错误状态码
       switch (error.response.status) {
         case 401:
           message = '未授权，请重新登录'
-          // 清除认证信息并跳转到登录页
           removeToken()
-          // router.push('/login')
+          // 可在此处调用 router.push('/login') 跳到登录页
           break
         case 403:
           message = '拒绝访问'
@@ -138,22 +182,25 @@ service.interceptors.response.use(
           message = '网关超时'
           break
         default:
-          message = error.response.data?.message || `错误代码：${error.response.status}`
+          message =
+            error.response.data?.message ||
+            `错误代码：${error.response.status}`
       }
     } else if (error.request) {
-      // 请求已发出但没有收到响应
+      // 请求已发出但未收到响应
       message = '网络连接失败，请检查网络'
     } else {
-      // 其他错误
+      // 构造请求时发生的错误
       message = error.message || '请求失败'
     }
 
-    if (config?.showError !== false) {
+    // 可关闭自动错误提示
+    if (requestConfig?.showError !== false) {
       ElMessage.error(message)
     }
 
     return Promise.reject(error)
-  }
+  },
 )
 
 export default service

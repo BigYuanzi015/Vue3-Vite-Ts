@@ -255,6 +255,9 @@ VITE_API_BASE_URL=/api
 - 使用 TypeScript 进行类型约束
 - 组件使用 PascalCase 命名
 - 工具函数使用 camelCase 命名
+- **全量 JSDoc 注释**：所有文件、接口、函数均附带完整的 JSDoc 文档注释
+- **语义化命名**：禁止单字母命名，泛型使用 `ResponseDataType` / `ItemType` 等有意义的名称
+- **零单字母变量**：所有变量、参数均为单词或词组（如 `requestConfig`、`previousRoute`）
 
 ### 文件命名
 

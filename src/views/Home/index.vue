@@ -1,3 +1,7 @@
+<!--
+  首页视图
+  展示欢迎信息，包含跳转到其他页面的快捷按钮。
+-->
 <template>
   <div class="home">
     <h1>欢迎来到首页</h1>
@@ -9,8 +13,12 @@
       </template>
       <div class="content">
         <p>这是一个使用 Vue Router 的示例页面</p>
-        <el-button type="primary" @click="goToAbout">前往关于页面</el-button>
-        <el-button type="success" @click="goToCounter">前往计数器页面</el-button>
+        <el-button type="primary" @click="handleNavigateToAbout">
+          前往关于页面
+        </el-button>
+        <el-button type="success" @click="handleNavigateToCounter">
+          前往计数器页面
+        </el-button>
       </div>
     </el-card>
   </div>
@@ -19,13 +27,16 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
+/** 路由实例 */
 const router = useRouter()
 
-function goToAbout() {
+/** 跳转到关于页面 */
+function handleNavigateToAbout(): void {
   router.push('/about')
 }
 
-function goToCounter() {
+/** 跳转到计数器页面 */
+function handleNavigateToCounter(): void {
   router.push('/counter')
 }
 </script>

@@ -1,3 +1,7 @@
+<!--
+  关于页面视图
+  展示项目所使用的技术栈清单。
+-->
 <template>
   <div class="about">
     <h1>关于页面</h1>
@@ -12,7 +16,9 @@
           <li>Pinia - Vue 状态管理</li>
           <li>Vue Router - Vue.js 官方路由管理器</li>
         </ul>
-        <el-button type="primary" @click="goHome">返回首页</el-button>
+        <el-button type="primary" @click="handleNavigateToHome">
+          返回首页
+        </el-button>
       </div>
     </el-card>
   </div>
@@ -21,9 +27,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
+/** 路由实例 */
 const router = useRouter()
 
-function goHome() {
+/** 返回首页 */
+function handleNavigateToHome(): void {
   router.push('/')
 }
 </script>
